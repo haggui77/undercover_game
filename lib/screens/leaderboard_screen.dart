@@ -282,7 +282,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
-                                              '${player.gamesPlayed} games',
+                                              '${player.gamesPlayed ~/ 2} games', // Divide by 2 to correct display
                                               style: TextStyle(
                                                 fontSize: 14,
                                                 color: Colors.white.withOpacity(
@@ -386,7 +386,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   Expanded(
                     child: _buildStatCard(
                       'Games',
-                      '${player.gamesPlayed}',
+                      '${player.gamesPlayed ~/ 2}', // Divide by 2 to correct display
                       Icons.games,
                       Colors.blue,
                     ),
@@ -395,7 +395,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   Expanded(
                     child: _buildStatCard(
                       'Wins',
-                      '${player.gamesWon}',
+                      '${player.gamesWon ~/ 2}',
                       Icons.emoji_events,
                       Colors.green,
                     ),
@@ -437,8 +437,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               ...Role.values.map((role) {
                 final count = player.roleCount[role] ?? 0;
                 final wins = player.roleWins[role] ?? 0;
-                final rate = count > 0 ? (wins / count * 100) : 0;
-
+                final rate = count > 0
+                    ? ((wins ~/ 2) / (count ~/ 2) * 100)
+                    : 0; // Adjust win rate calculation
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(16),
@@ -471,7 +472,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                               ),
                             ),
                             Text(
-                              'Played: $count | Wins: $wins | Rate: ${rate.toStringAsFixed(1)}%',
+                              'Played: ${count ~/ 2} | Wins: ${wins ~/ 2} | Rate: ${rate.toStringAsFixed(1)}%', // Divide count by 2
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.white.withOpacity(0.8),

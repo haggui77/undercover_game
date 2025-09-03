@@ -11,12 +11,14 @@ class GameScreen extends StatefulWidget {
   final List<Player> players;
   final String civilianWord;
   final String spyWord;
+  final Language language; // Add language parameter
 
   const GameScreen({
     super.key,
     required this.players,
     required this.civilianWord,
     required this.spyWord,
+    required this.language, // Add language parameter
   });
 
   @override
@@ -54,7 +56,9 @@ class _GameScreenState extends State<GameScreen> {
       case Role.spy:
         return widget.spyWord;
       case Role.mrWhite:
-        return 'No word - Guess from others!';
+        return widget.language == Language.english
+            ? 'No word - Guess from others!'
+            : 'لا توجد كلمة - خمن من الآخرين!';
     }
   }
 
@@ -144,6 +148,7 @@ class _GameScreenState extends State<GameScreen> {
 
     if (currentPhase == Phase.gameOver) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        // In GameScreen, when navigating to PostGameScreen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -156,6 +161,7 @@ class _GameScreenState extends State<GameScreen> {
               totalPlayers: players.length,
               numSpies: players.where((p) => p.role == Role.spy).length,
               numMrWhites: players.where((p) => p.role == Role.mrWhite).length,
+              language: widget.language, // Pass the language from GameScreen
             ),
           ),
         );

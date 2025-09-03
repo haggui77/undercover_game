@@ -96,6 +96,7 @@ class _CardSelectionScreenState extends State<CardSelectionScreen> {
               players: players.whereType<Player>().toList(),
               civilianWord: civilianWord,
               spyWord: spyWord,
+              language: widget.language, // Pass the language
             ),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {

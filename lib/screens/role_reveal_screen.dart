@@ -1,21 +1,25 @@
+import 'dart:convert';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:undercover_game/models/enums.dart';
 import 'package:undercover_game/models/players.dart';
 import 'package:undercover_game/screens/game_screen.dart';
 import 'package:undercover_game/screens/reveal_screen.dart';
+import 'package:undercover_game/word_pairs.dart';
 
 class RoleRevealScreen extends StatefulWidget {
   final List<String> playerNames;
   final int numSpies;
   final int numMrWhites;
+  final Language language;
 
   const RoleRevealScreen({
     super.key,
     required this.playerNames,
     required this.numSpies,
     required this.numMrWhites,
+    required this.language,
   });
 
   @override
@@ -28,31 +32,43 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
   late String spyWord;
   late List<Player> players;
   List<bool> viewed = [];
+  List<List<String>> wordPairs = [];
 
   @override
   void initState() {
     super.initState();
-    _setupGame();
+    _loadWordPairs();
     players = widget.playerNames
         .map((name) => Player(name, Role.civilian))
-        .toList(); // Temporary roles
+        .toList();
     viewed = List.filled(widget.playerNames.length, false);
   }
 
-  void _setupGame() {
-    List<List<String>> wordPairs = [
-      ['Apple', 'Banana'],
-      ['Cat', 'Dog'],
-      ['Car', 'Truck'],
-      ['Phone', 'Computer'],
-      ['Book', 'Magazine'],
-      ['Coffee', 'Tea'],
-      ['Sun', 'Moon'],
-      ['River', 'Lake'],
-      ['Mountain', 'Hill'],
-      ['Tree', 'Bush'],
-    ];
+  Future<void> _loadWordPairs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final wordPairsJson = prefs.getString('wordPairs_${widget.language.name}');
 
+    if (wordPairsJson != null) {
+      final List<dynamic> decoded = jsonDecode(wordPairsJson);
+      setState(() {
+        wordPairs = decoded.map((pair) => List<String>.from(pair)).toList();
+      });
+    } else {
+      setState(() {
+        wordPairs = widget.language == Language.english
+            ? englishWordPairs
+            : arabicWordPairs;
+      });
+      await prefs.setString(
+        'wordPairs_${widget.language.name}',
+        jsonEncode(wordPairs),
+      );
+    }
+
+    _setupGame();
+  }
+
+  void _setupGame() {
     final random = Random();
     final pair = wordPairs[random.nextInt(wordPairs.length)];
     civilianWord = pair[0];
@@ -72,11 +88,13 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
   String _getWordForRole(Role role) {
     switch (role) {
       case Role.civilian:
-        return civilianWord;
+        return civilianWord; // Use local variable, not widget.civilianWord
       case Role.spy:
-        return spyWord;
+        return spyWord; // Use local variable, not widget.spyWord
       case Role.mrWhite:
-        return 'No word - Guess from others!';
+        return widget.language == Language.english
+            ? 'No word - Guess from others!'
+            : 'لا توجد كلمة - خمن من الآخرين!';
     }
   }
 
@@ -94,8 +112,9 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) => GameScreen(
               players: players,
-              civilianWord: civilianWord,
-              spyWord: spyWord,
+              civilianWord: civilianWord, // Use local variable
+              spyWord: spyWord, // Use local variable
+              language: widget.language, // Pass the language
             ),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {

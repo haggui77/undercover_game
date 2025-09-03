@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:undercover_game/models/enums.dart';
 import 'package:undercover_game/models/players.dart';
 import 'package:undercover_game/screens/role_reveal_screen.dart';
 import 'package:undercover_game/screens/leaderboard_screen.dart';
@@ -13,6 +14,7 @@ class PostGameScreen extends StatefulWidget {
   final int totalPlayers;
   final int numSpies;
   final int numMrWhites;
+  final Language language; // Add language parameter
 
   const PostGameScreen({
     super.key,
@@ -24,6 +26,7 @@ class PostGameScreen extends StatefulWidget {
     required this.totalPlayers,
     required this.numSpies,
     required this.numMrWhites,
+    required this.language, // Add language parameter
   });
 
   @override
@@ -76,6 +79,9 @@ class _PostGameScreenState extends State<PostGameScreen>
 
   void _startNewRound() {
     final playerNames = widget.players.map((p) => p.name).toList();
+
+    // You'll need to track the language in PostGameScreen
+    // Add this to PostGameScreen constructor and state
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
@@ -84,6 +90,7 @@ class _PostGameScreenState extends State<PostGameScreen>
               playerNames: playerNames,
               numSpies: widget.numSpies,
               numMrWhites: widget.numMrWhites,
+              language: widget.language, // Pass the language
             ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(1.0, 0.0);
