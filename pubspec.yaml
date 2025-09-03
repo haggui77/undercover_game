@@ -1,0 +1,32 @@
+name: undercover_game
+description: "A new Flutter project."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  shared_preferences: ^2.5.3
+  flutter_animate: ^4.5.2
+  google_fonts: ^6.3.1
+  flutter_launcher_icons: ^0.14.0 # Add this dependency for app icon generation
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/under.png # Reference the icon image
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/under.png"
+  min_sdk_android: 21 # Optional, adjust if needed
