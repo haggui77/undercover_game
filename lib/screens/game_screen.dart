@@ -6,19 +6,20 @@ import 'package:undercover_game/models/enums.dart';
 import 'package:undercover_game/models/players.dart';
 import 'package:undercover_game/screens/interrogation_vote_screen.dart';
 import 'package:undercover_game/screens/post_game_screen.dart';
+import 'package:undercover_game/screens/verify_player_screen.dart';
 
 class GameScreen extends StatefulWidget {
   final List<Player> players;
   final String civilianWord;
   final String spyWord;
-  final Language language; // Add language parameter
+  final Language language;
 
   const GameScreen({
     super.key,
     required this.players,
     required this.civilianWord,
     required this.spyWord,
-    required this.language, // Add language parameter
+    required this.language,
   });
 
   @override
@@ -47,19 +48,6 @@ class _GameScreenState extends State<GameScreen> {
 
   List<Player> _getActivePlayers() {
     return players.where((p) => !p.eliminated).toList();
-  }
-
-  String _getWordForRole(Role role) {
-    switch (role) {
-      case Role.civilian:
-        return widget.civilianWord;
-      case Role.spy:
-        return widget.spyWord;
-      case Role.mrWhite:
-        return widget.language == Language.english
-            ? 'No word - Guess from others!'
-            : 'لا توجد كلمة - خمن من الآخرين!';
-    }
   }
 
   void _proceedAfterResults() {
@@ -142,13 +130,43 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void _showVerifyPlayerScreen() {
+    print('Navigating to VerifyPlayerScreen'); // Debug log
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            VerifyPlayerScreen(
+              players: _getActivePlayers(),
+              civilianWord: widget.civilianWord,
+              spyWord: widget.spyWord,
+              language: widget.language,
+            ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(position: offsetAnimation, child: child);
+        },
+      ),
+    ).then((_) {
+      print('Returned from VerifyPlayerScreen'); // Debug log
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final activePlayers = _getActivePlayers();
 
     if (currentPhase == Phase.gameOver) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // In GameScreen, when navigating to PostGameScreen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -161,7 +179,7 @@ class _GameScreenState extends State<GameScreen> {
               totalPlayers: players.length,
               numSpies: players.where((p) => p.role == Role.spy).length,
               numMrWhites: players.where((p) => p.role == Role.mrWhite).length,
-              language: widget.language, // Pass the language from GameScreen
+              language: widget.language,
             ),
           ),
         );
@@ -192,6 +210,13 @@ class _GameScreenState extends State<GameScreen> {
           title: Text('Description Phase', style: GoogleFonts.poppins()),
           backgroundColor: Colors.transparent,
           elevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.info),
+              tooltip: 'View Your Role',
+              onPressed: _showVerifyPlayerScreen,
+            ),
+          ],
         ),
         extendBodyBehindAppBar: true,
         body: Container(
@@ -308,6 +333,13 @@ class _GameScreenState extends State<GameScreen> {
           title: Text("${voter.name}'s Vote", style: GoogleFonts.poppins()),
           backgroundColor: Colors.transparent,
           elevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.info),
+              tooltip: 'View Your Role',
+              onPressed: _showVerifyPlayerScreen,
+            ),
+          ],
         ),
         extendBodyBehindAppBar: true,
         body: Container(
@@ -507,6 +539,18 @@ class _GameScreenState extends State<GameScreen> {
       return _buildInterrogationScreen();
     } else if (currentPhase == Phase.results) {
       return Scaffold(
+        appBar: AppBar(
+          title: Text('Results', style: GoogleFonts.poppins()),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.info),
+              tooltip: 'View Your Role',
+              onPressed: _showVerifyPlayerScreen,
+            ),
+          ],
+        ),
         body: Container(
           decoration: BoxDecoration(
             gradient: RadialGradient(
@@ -676,6 +720,18 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Interrogation', style: GoogleFonts.poppins()),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info),
+            tooltip: 'View Your Role',
+            onPressed: _showVerifyPlayerScreen,
+          ),
+        ],
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: RadialGradient(
