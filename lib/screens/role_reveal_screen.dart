@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:undercover_game/models/enums.dart';
 import 'package:undercover_game/models/players.dart';
@@ -37,38 +38,55 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
   @override
   void initState() {
     super.initState();
-    _loadWordPairs();
+    print('Initializing RoleRevealScreen'); // Debug log
     players = widget.playerNames
         .map((name) => Player(name, Role.civilian))
         .toList();
     viewed = List.filled(widget.playerNames.length, false);
+    _loadWordPairs();
   }
 
   Future<void> _loadWordPairs() async {
+    print(
+      'Loading word pairs for language: ${widget.language.name}',
+    ); // Debug log
     final prefs = await SharedPreferences.getInstance();
     final wordPairsJson = prefs.getString('wordPairs_${widget.language.name}');
 
     if (wordPairsJson != null) {
-      final List<dynamic> decoded = jsonDecode(wordPairsJson);
-      setState(() {
+      try {
+        final List<dynamic> decoded = jsonDecode(wordPairsJson);
         wordPairs = decoded.map((pair) => List<String>.from(pair)).toList();
-      });
-    } else {
-      setState(() {
+      } catch (e) {
+        print('Error decoding word pairs: $e'); // Debug log
         wordPairs = widget.language == Language.english
             ? englishWordPairs
             : arabicWordPairs;
-      });
+      }
+    } else {
+      wordPairs = widget.language == Language.english
+          ? englishWordPairs
+          : arabicWordPairs;
       await prefs.setString(
         'wordPairs_${widget.language.name}',
         jsonEncode(wordPairs),
       );
     }
 
-    _setupGame();
+    if (wordPairs.isEmpty) {
+      print('Warning: Word pairs list is empty'); // Debug log
+      wordPairs = [
+        ['default_civilian', 'default_spy'],
+      ]; // Fallback to avoid crash
+    }
+
+    setState(() {
+      _setupGame();
+    });
   }
 
   void _setupGame() {
+    print('Setting up game'); // Debug log
     final random = Random();
     final pair = wordPairs[random.nextInt(wordPairs.length)];
     civilianWord = pair[0];
@@ -83,14 +101,15 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
     cardRoles.addAll(List.filled(widget.numSpies, Role.spy));
     cardRoles.addAll(List.filled(widget.numMrWhites, Role.mrWhite));
     cardRoles.shuffle();
+    print('Assigned roles: $cardRoles'); // Debug log
   }
 
   String _getWordForRole(Role role) {
     switch (role) {
       case Role.civilian:
-        return civilianWord; // Use local variable, not widget.civilianWord
+        return civilianWord;
       case Role.spy:
-        return spyWord; // Use local variable, not widget.spyWord
+        return spyWord;
       case Role.mrWhite:
         return widget.language == Language.english
             ? 'No word - Guess from others!'
@@ -102,6 +121,7 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
   Widget build(BuildContext context) {
     int remaining = viewed.where((v) => !v).length;
     if (remaining == 0) {
+      print('All players viewed roles, navigating to GameScreen'); // Debug log
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // Assign roles to players
         for (int i = 0; i < players.length; i++) {
@@ -112,9 +132,9 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) => GameScreen(
               players: players,
-              civilianWord: civilianWord, // Use local variable
-              spyWord: spyWord, // Use local variable
-              language: widget.language, // Pass the language
+              civilianWord: civilianWord,
+              spyWord: spyWord,
+              language: widget.language,
             ),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
@@ -139,10 +159,10 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
       return Scaffold(
         body: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.indigo[800]!, Colors.indigo[500]!],
+            gradient: RadialGradient(
+              center: Alignment.center,
+              radius: 1.5,
+              colors: [Colors.indigo[700]!, Colors.indigo[900]!],
             ),
           ),
           child: const Center(
@@ -156,172 +176,187 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reveal Your Role'),
+        title: Text('Reveal Your Role', style: GoogleFonts.poppins()),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            print('Back button pressed, exiting RoleRevealScreen'); // Debug log
+            Navigator.pop(context);
+          },
         ),
       ),
       extendBodyBehindAppBar: true,
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.indigo[800]!, Colors.indigo[500]!],
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 1.5,
+            colors: [Colors.indigo[700]!, Colors.indigo[900]!],
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, kToolbarHeight + 16, 16, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Tap your name to reveal your role',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withOpacity(0.9),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                '$remaining players remaining',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white.withOpacity(0.7),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tap your name to reveal your role',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
-                  itemCount: widget.playerNames.length,
-                  itemBuilder: (context, index) {
-                    final name = widget.playerNames[index];
-                    if (viewed[index]) {
-                      return Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '$remaining players remaining',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
                         ),
-                        color: Colors.grey[700],
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.check_circle,
-                                color: Colors.white,
-                                size: 40,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                name,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                    return GestureDetector(
-                      onTap: () async {
-                        final role = cardRoles[index];
-                        await Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder:
-                                (context, animation, secondaryAnimation) =>
-                                    RevealScreen(
-                                      name: name,
-                                      role: role,
-                                      word: _getWordForRole(role),
-                                    ),
-                            transitionsBuilder:
-                                (
-                                  context,
-                                  animation,
-                                  secondaryAnimation,
-                                  child,
-                                ) {
-                                  const begin = Offset(0.0, 1.0);
-                                  const end = Offset.zero;
-                                  const curve = Curves.easeInOut;
-
-                                  var tween = Tween(
-                                    begin: begin,
-                                    end: end,
-                                  ).chain(CurveTween(curve: curve));
-                                  var offsetAnimation = animation.drive(tween);
-
-                                  return SlideTransition(
-                                    position: offsetAnimation,
-                                    child: child,
-                                  );
-                                },
-                          ),
-                        );
-                        setState(() {
-                          viewed[index] = true;
-                        });
-                      },
-                      child: Card(
-                        elevation: 6,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Colors.blue[400]!, Colors.blue[700]!],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                    itemCount: widget.playerNames.length,
+                    itemBuilder: (context, index) {
+                      final name = widget.playerNames[index];
+                      if (viewed[index]) {
+                        return Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.blue[900]!.withOpacity(0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
                           ),
+                          color: Colors.grey[700],
                           child: Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const Icon(
-                                  Icons.help_outline,
-                                  size: 48,
+                                  Icons.check_circle,
                                   color: Colors.white,
+                                  size: 40,
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   name,
-                                  style: const TextStyle(
+                                  style: GoogleFonts.poppins(
                                     color: Colors.white,
                                     fontSize: 16,
-                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ],
                             ),
                           ),
+                        );
+                      }
+                      return GestureDetector(
+                        onTap: () async {
+                          final role = cardRoles[index];
+                          print(
+                            'Player $name tapped, navigating to RevealScreen',
+                          ); // Debug log
+                          await Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      RevealScreen(
+                                        name: name,
+                                        role: role,
+                                        word: _getWordForRole(role),
+                                      ),
+                              transitionsBuilder:
+                                  (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                  ) {
+                                    const begin = Offset(0.0, 1.0);
+                                    const end = Offset.zero;
+                                    const curve = Curves.easeInOut;
+
+                                    var tween = Tween(
+                                      begin: begin,
+                                      end: end,
+                                    ).chain(CurveTween(curve: curve));
+                                    var offsetAnimation = animation.drive(
+                                      tween,
+                                    );
+
+                                    return SlideTransition(
+                                      position: offsetAnimation,
+                                      child: child,
+                                    );
+                                  },
+                            ),
+                          );
+                          setState(() {
+                            viewed[index] = true;
+                            print('Marked $name as viewed'); // Debug log
+                          });
+                        },
+                        child: Card(
+                          elevation: 6,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Colors.blue[400]!, Colors.blue[700]!],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.blue[900]!.withOpacity(0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.help_outline,
+                                    size: 48,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    name,
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
