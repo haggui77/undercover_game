@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:undercover_game/models/players.dart';
 
-class NameEntryScreen extends StatefulWidget {
-  const NameEntryScreen({super.key});
+class MrWhiteGuessScreen extends StatefulWidget {
+  final Player player;
+  final void Function(String) onGuess;
+
+  const MrWhiteGuessScreen({
+    super.key,
+    required this.player,
+    required this.onGuess,
+  });
 
   @override
-  State<NameEntryScreen> createState() => _NameEntryScreenState();
+  State<MrWhiteGuessScreen> createState() => _MrWhiteGuessScreenState();
 }
 
-class _NameEntryScreenState extends State<NameEntryScreen>
+class _MrWhiteGuessScreenState extends State<MrWhiteGuessScreen>
     with TickerProviderStateMixin {
-  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _guessController = TextEditingController();
+  String? _errorMessage;
 
   Widget _buildBlob(double size, Color color) {
     return IgnorePointer(
@@ -61,40 +70,46 @@ class _NameEntryScreenState extends State<NameEntryScreen>
     required IconData icon,
     required List<Color> colors,
     required VoidCallback onTap,
+    bool enabled = true,
   }) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: colors),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: colors.last.withOpacity(0.4),
-              blurRadius: 15,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(width: 8),
-            Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
+          onTap: enabled ? onTap : null,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: enabled ? colors : [Colors.grey, Colors.grey],
               ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: (enabled ? colors.last : Colors.grey).withOpacity(0.4),
+                  blurRadius: 15,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(
+                  text,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+        .animate()
+        .fadeIn(duration: 400.ms)
+        .scale(duration: 400.ms, curve: Curves.easeOut);
   }
 
   @override
@@ -103,7 +118,7 @@ class _NameEntryScreenState extends State<NameEntryScreen>
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          'Enter Your Name',
+          'Mr. White\'s Guess',
           style: GoogleFonts.orbitron(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -116,6 +131,7 @@ class _NameEntryScreenState extends State<NameEntryScreen>
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
+          color: Colors.white,
         ),
       ),
       body: Stack(
@@ -149,7 +165,7 @@ class _NameEntryScreenState extends State<NameEntryScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                          'Enter Your Name',
+                          '${widget.player.name}, you are Mr. White!',
                           style: GoogleFonts.orbitron(
                             fontSize: 34,
                             fontWeight: FontWeight.bold,
@@ -162,42 +178,83 @@ class _NameEntryScreenState extends State<NameEntryScreen>
                               ),
                             ],
                           ),
+                          textAlign: TextAlign.center,
                         )
                         .animate()
                         .fadeIn(duration: 800.ms)
                         .scale(duration: 700.ms, curve: Curves.easeOutBack),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Guess the civilian word to win for the Undercovers, or be eliminated!',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        color: Colors.white70,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
+                    ).animate().fadeIn(duration: 500.ms),
                     const SizedBox(height: 32),
                     _buildCard(
                           child: TextField(
-                            controller: _controller,
+                            controller: _guessController,
                             style: GoogleFonts.poppins(
                               color: Colors.white,
-                              fontSize: 18,
+                              fontSize: 16,
                             ),
                             textCapitalization: TextCapitalization.words,
                             decoration: InputDecoration(
-                              labelText: 'Name',
+                              labelText: 'Your Guess',
                               labelStyle: GoogleFonts.poppins(
                                 color: Colors.white70,
                               ),
                               prefixIcon: const Icon(
-                                Icons.person,
+                                Icons.question_mark,
                                 color: Colors.white70,
                               ),
+                              errorText: _errorMessage,
+                              errorStyle: GoogleFonts.poppins(
+                                color: Colors.red,
+                              ),
                               enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
                                   color: Colors.white.withOpacity(0.2),
                                 ),
-                                borderRadius: BorderRadius.circular(12),
                               ),
                               focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
                                 borderSide: const BorderSide(
                                   color: Colors.indigoAccent,
                                   width: 2,
                                 ),
+                              ),
+                              errorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Colors.red,
+                                  width: 2,
+                                ),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Colors.red,
+                                  width: 2,
+                                ),
                               ),
                             ),
+                            onSubmitted: (value) {
+                              if (value.trim().isEmpty) {
+                                setState(() {
+                                  _errorMessage = 'Please enter a guess';
+                                });
+                              } else {
+                                setState(() {
+                                  _errorMessage = null;
+                                });
+                                widget.onGuess(value.trim());
+                              }
+                            },
                           ),
                         )
                         .animate()
@@ -205,19 +262,22 @@ class _NameEntryScreenState extends State<NameEntryScreen>
                         .scale(duration: 400.ms, curve: Curves.easeOut),
                     const SizedBox(height: 32),
                     _buildGameButton(
-                          text: 'CONTINUE',
-                          icon: Icons.arrow_forward,
-                          colors: [Colors.greenAccent, Colors.teal],
-                          onTap: () {
-                            final name = _controller.text.trim();
-                            if (name.isNotEmpty) {
-                              Navigator.pop(context, name);
-                            }
-                          },
-                        )
-                        .animate()
-                        .fadeIn(duration: 400.ms)
-                        .scale(duration: 400.ms, curve: Curves.easeOut),
+                      text: 'SUBMIT GUESS',
+                      icon: Icons.send,
+                      colors: [Colors.blueAccent, Colors.indigo],
+                      onTap: () {
+                        if (_guessController.text.trim().isEmpty) {
+                          setState(() {
+                            _errorMessage = 'Please enter a guess';
+                          });
+                        } else {
+                          setState(() {
+                            _errorMessage = null;
+                          });
+                          widget.onGuess(_guessController.text.trim());
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -230,7 +290,7 @@ class _NameEntryScreenState extends State<NameEntryScreen>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _guessController.dispose();
     super.dispose();
   }
 }

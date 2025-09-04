@@ -13,7 +13,8 @@ class WordManagementScreen extends StatefulWidget {
   State<WordManagementScreen> createState() => _WordManagementScreenState();
 }
 
-class _WordManagementScreenState extends State<WordManagementScreen> {
+class _WordManagementScreenState extends State<WordManagementScreen>
+    with TickerProviderStateMixin {
   final _civilianController = TextEditingController();
   final _spyController = TextEditingController();
   List<List<String>> _englishWordPairs = [];
@@ -91,7 +92,7 @@ class _WordManagementScreenState extends State<WordManagementScreen> {
         SnackBar(
           content: Text(
             'Word pair added successfully!',
-            style: GoogleFonts.poppins(),
+            style: GoogleFonts.poppins(color: Colors.white),
           ),
           backgroundColor: Colors.green[600],
           behavior: SnackBarBehavior.floating,
@@ -111,114 +112,179 @@ class _WordManagementScreenState extends State<WordManagementScreen> {
     _spyController.text = currentPairs[index][1];
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.indigo[900]!.withOpacity(0.95),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Edit Word Pair',
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _civilianController,
-                style: GoogleFonts.poppins(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Civilian Word',
-                  labelStyle: GoogleFonts.poppins(
-                    color: Colors.white.withOpacity(0.7),
+      builder: (context) =>
+          AlertDialog(
+                backgroundColor: Colors.white.withOpacity(0.05),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                ),
+                title: Text(
+                  'Edit Word Pair',
+                  style: GoogleFonts.orbitron(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 2,
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a civilian word';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _spyController,
-                style: GoogleFonts.poppins(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Spy Word',
-                  labelStyle: GoogleFonts.poppins(
-                    color: Colors.white.withOpacity(0.7),
+                content: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: _civilianController,
+                        style: GoogleFonts.poppins(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Civilian Word',
+                          labelStyle: GoogleFonts.poppins(
+                            color: Colors.white70,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.white.withOpacity(0.2),
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.indigoAccent,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.red,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.red,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          errorStyle: GoogleFonts.poppins(color: Colors.red),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a civilian word';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _spyController,
+                        style: GoogleFonts.poppins(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Spy Word',
+                          labelStyle: GoogleFonts.poppins(
+                            color: Colors.white70,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.white.withOpacity(0.2),
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.indigoAccent,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.red,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.red,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          errorStyle: GoogleFonts.poppins(color: Colors.red),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a spy word';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a spy word';
-                  }
-                  return null;
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.poppins(color: Colors.white),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                setState(() {
-                  if (_selectedLanguage == Language.english) {
-                    _englishWordPairs[index] = [
-                      _civilianController.text.trim(),
-                      _spyController.text.trim(),
-                    ];
-                  } else {
-                    _arabicWordPairs[index] = [
-                      _civilianController.text.trim(),
-                      _spyController.text.trim(),
-                    ];
-                  }
-                  _civilianController.clear();
-                  _spyController.clear();
-                });
-                _saveWordPairs();
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Word pair updated successfully!',
-                      style: GoogleFonts.poppins(),
-                    ),
-                    backgroundColor: Colors.green[600],
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Cancel',
+                      style: GoogleFonts.poppins(
+                        color: Colors.blueAccent,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.indigo[800],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'Save',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ).animate().fadeIn(duration: 300.ms).scale(duration: 400.ms),
+                  TextButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        setState(() {
+                          if (_selectedLanguage == Language.english) {
+                            _englishWordPairs[index] = [
+                              _civilianController.text.trim(),
+                              _spyController.text.trim(),
+                            ];
+                          } else {
+                            _arabicWordPairs[index] = [
+                              _civilianController.text.trim(),
+                              _spyController.text.trim(),
+                            ];
+                          }
+                          _civilianController.clear();
+                          _spyController.clear();
+                        });
+                        _saveWordPairs();
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Word pair updated successfully!',
+                              style: GoogleFonts.poppins(color: Colors.white),
+                            ),
+                            backgroundColor: Colors.green[600],
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text(
+                      'Save',
+                      style: GoogleFonts.poppins(
+                        color: Colors.green,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+              .animate()
+              .fadeIn(duration: 300.ms)
+              .scale(duration: 400.ms, curve: Curves.easeOut),
     );
   }
 
@@ -235,7 +301,7 @@ class _WordManagementScreenState extends State<WordManagementScreen> {
       SnackBar(
         content: Text(
           'Word pair deleted successfully!',
-          style: GoogleFonts.poppins(),
+          style: GoogleFonts.poppins(color: Colors.white),
         ),
         backgroundColor: Colors.red[600],
         behavior: SnackBarBehavior.floating,
@@ -244,27 +310,92 @@ class _WordManagementScreenState extends State<WordManagementScreen> {
     );
   }
 
-  Widget _buildLanguageSelector() {
+  Widget _buildBlob(double size, Color color) {
+    return IgnorePointer(
+      ignoring: true,
+      child:
+          Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withOpacity(0.25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.6),
+                      blurRadius: size * 0.6,
+                      spreadRadius: size * 0.25,
+                    ),
+                  ],
+                ),
+              )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scale(duration: 4.seconds, curve: Curves.easeInOut),
+    );
+  }
+
+  Widget _buildCard({required Widget child}) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withOpacity(0.15),
-            Colors.white.withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 20,
+            spreadRadius: -5,
           ),
         ],
       ),
+      child: child,
+    );
+  }
+
+  Widget _buildGameButton({
+    required String text,
+    required IconData icon,
+    required List<Color> colors,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: colors),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: colors.last.withOpacity(0.4),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(
+              text,
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageSelector() {
+    return _buildCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -294,13 +425,22 @@ class _WordManagementScreenState extends State<WordManagementScreen> {
                   decoration: BoxDecoration(
                     gradient: _selectedLanguage == Language.english
                         ? LinearGradient(
-                            colors: [Colors.indigo[600]!, Colors.indigo[800]!],
+                            colors: [Colors.indigoAccent, Colors.purpleAccent],
                           )
-                        : null,
-                    color: _selectedLanguage == Language.english
-                        ? null
-                        : Colors.grey.withOpacity(0.3),
+                        : LinearGradient(
+                            colors: [
+                              Colors.grey.withOpacity(0.3),
+                              Colors.grey.withOpacity(0.2),
+                            ],
+                          ),
                     borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Text(
                     'English',
@@ -325,13 +465,22 @@ class _WordManagementScreenState extends State<WordManagementScreen> {
                   decoration: BoxDecoration(
                     gradient: _selectedLanguage == Language.arabic
                         ? LinearGradient(
-                            colors: [Colors.indigo[600]!, Colors.indigo[800]!],
+                            colors: [Colors.indigoAccent, Colors.purpleAccent],
                           )
-                        : null,
-                    color: _selectedLanguage == Language.arabic
-                        ? null
-                        : Colors.grey.withOpacity(0.3),
+                        : LinearGradient(
+                            colors: [
+                              Colors.grey.withOpacity(0.3),
+                              Colors.grey.withOpacity(0.2),
+                            ],
+                          ),
                     borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Text(
                     'العربية',
@@ -363,8 +512,17 @@ class _WordManagementScreenState extends State<WordManagementScreen> {
         : _arabicWordPairs;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Manage Words', style: GoogleFonts.poppins()),
+        title: Text(
+          'Manage Words',
+          style: GoogleFonts.orbitron(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 2,
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -372,214 +530,271 @@ class _WordManagementScreenState extends State<WordManagementScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.5,
-            colors: [Colors.indigo[700]!, Colors.indigo[900]!],
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.center,
+                radius: 1.2,
+                colors: [Color(0xFF0f172a), Color(0xFF020617)],
+              ),
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Add New Word Pair',
-                  style: GoogleFonts.poppins(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ).animate().fadeIn(duration: 400.ms),
-                const SizedBox(height: 16),
-                _buildLanguageSelector().animate().fadeIn(duration: 400.ms),
-                const SizedBox(height: 16),
-                Form(
-                  key: _formKey,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.white.withOpacity(0.15),
-                          Colors.white.withOpacity(0.05),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: _civilianController,
-                          style: GoogleFonts.poppins(color: Colors.white),
-                          decoration: InputDecoration(
-                            labelText: 'Civilian Word',
-                            labelStyle: GoogleFonts.poppins(
-                              color: Colors.white.withOpacity(0.7),
-                            ),
+          Positioned(
+            top: -100,
+            left: -100,
+            child: _buildBlob(250, Colors.indigoAccent.withOpacity(0.3)),
+          ),
+          Positioned(
+            bottom: -120,
+            right: -80,
+            child: _buildBlob(300, Colors.purpleAccent.withOpacity(0.25)),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                          'Manage Word Pairs',
+                          style: GoogleFonts.orbitron(
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 4,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 25,
+                                color: Colors.indigoAccent.withOpacity(0.7),
+                              ),
+                            ],
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Please enter a civilian word';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _spyController,
-                          style: GoogleFonts.poppins(color: Colors.white),
-                          decoration: InputDecoration(
-                            labelText: 'Spy Word',
-                            labelStyle: GoogleFonts.poppins(
-                              color: Colors.white.withOpacity(0.7),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Please enter a spy word';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child:
-                              ElevatedButton(
-                                    onPressed: _addWordPair,
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                      backgroundColor: Colors.white,
-                                      foregroundColor: Colors.indigo[800],
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
+                        )
+                        .animate()
+                        .fadeIn(duration: 800.ms)
+                        .scale(duration: 700.ms, curve: Curves.easeOutBack),
+                    const SizedBox(height: 24),
+                    _buildLanguageSelector()
+                        .animate()
+                        .fadeIn(duration: 400.ms)
+                        .scale(duration: 400.ms, curve: Curves.easeOut),
+                    const SizedBox(height: 24),
+                    _buildCard(
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              children: [
+                                TextFormField(
+                                  controller: _civilianController,
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: 'Civilian Word',
+                                    labelStyle: GoogleFonts.poppins(
+                                      color: Colors.white70,
                                     ),
-                                    child: Text(
-                                      'ADD WORD PAIR',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.white.withOpacity(0.2),
                                       ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                        color: Colors.indigoAccent,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    errorStyle: GoogleFonts.poppins(
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Please enter a civilian word';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _spyController,
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: 'Spy Word',
+                                    labelStyle: GoogleFonts.poppins(
+                                      color: Colors.white70,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.white.withOpacity(0.2),
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                        color: Colors.indigoAccent,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    errorStyle: GoogleFonts.poppins(
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Please enter a spy word';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                _buildGameButton(
+                                  text: 'ADD WORD PAIR',
+                                  icon: Icons.add,
+                                  colors: [Colors.greenAccent, Colors.teal],
+                                  onTap: _addWordPair,
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(duration: 400.ms)
+                        .scale(duration: 400.ms, curve: Curves.easeOut),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Existing Word Pairs',
+                      style: GoogleFonts.orbitron(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 2,
+                      ),
+                    ).animate().fadeIn(duration: 400.ms),
+                    const SizedBox(height: 16),
+                    currentPairs.isEmpty
+                        ? _buildCard(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16.0,
+                                  ),
+                                  child: Text(
+                                    'No word pairs added yet!',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      color: Colors.white70,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              )
+                              .animate()
+                              .fadeIn(duration: 400.ms)
+                              .scale(duration: 400.ms, curve: Curves.easeOut)
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: currentPairs.length,
+                            itemBuilder: (context, index) {
+                              final pair = currentPairs[index];
+                              return _buildCard(
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Civilian: ${pair[0]}',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 16,
+                                                  color: Colors.green[300],
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                              Text(
+                                                'Spy: ${pair[1]}',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 16,
+                                                  color: Colors.red[300],
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.edit,
+                                            color: Colors.white,
+                                          ),
+                                          onPressed: () => _editWordPair(index),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            color: Colors.red,
+                                          ),
+                                          onPressed: () =>
+                                              _deleteWordPair(index),
+                                        ),
+                                      ],
                                     ),
                                   )
                                   .animate()
-                                  .fadeIn(duration: 400.ms)
-                                  .scale(duration: 400.ms),
-                        ),
-                      ],
-                    ),
-                  ).animate().fadeIn(duration: 400.ms).scale(duration: 400.ms),
+                                  .fadeIn(duration: 300.ms)
+                                  .scale(
+                                    duration: 400.ms,
+                                    curve: Curves.easeOut,
+                                  );
+                            },
+                          ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  'Existing Word Pairs',
-                  style: GoogleFonts.poppins(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ).animate().fadeIn(duration: 400.ms),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: currentPairs.length,
-                    itemBuilder: (context, index) {
-                      final pair = currentPairs[index];
-                      return Container(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.blue[500]!.withOpacity(0.3),
-                                  Colors.blue[800]!.withOpacity(0.3),
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Civilian: ${pair[0]}',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 16,
-                                          color: Colors.green[100],
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Spy: ${pair[1]}',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 16,
-                                          color: Colors.red[100],
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.edit,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: () => _editWordPair(index),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    color: Colors.red,
-                                  ),
-                                  onPressed: () => _deleteWordPair(index),
-                                ),
-                              ],
-                            ),
-                          )
-                          .animate()
-                          .fadeIn(duration: 300.ms)
-                          .scale(duration: 400.ms);
-                    },
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

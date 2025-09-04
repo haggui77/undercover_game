@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:undercover_game/models/enums.dart';
 import 'package:undercover_game/models/players.dart';
@@ -37,34 +38,11 @@ class PostGameScreen extends StatefulWidget {
 class _PostGameScreenState extends State<PostGameScreen>
     with TickerProviderStateMixin {
   bool _scoresSaved = false;
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-    );
-
-    _animationController.forward();
     _saveScores();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 
   Future<void> _saveScores() async {
@@ -82,7 +60,6 @@ class _PostGameScreenState extends State<PostGameScreen>
 
   void _startNewRound() {
     print('Starting new round'); // Debug log
-    // Reset player states
     final resetPlayers = widget.players.map((p) {
       return Player(p.name, Role.civilian)..eliminated = false;
     }).toList();
@@ -145,11 +122,107 @@ class _PostGameScreenState extends State<PostGameScreen>
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
+  Widget _buildBlob(double size, Color color) {
+    return IgnorePointer(
+      ignoring: true,
+      child:
+          Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withOpacity(0.25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.6),
+                      blurRadius: size * 0.6,
+                      spreadRadius: size * 0.25,
+                    ),
+                  ],
+                ),
+              )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scale(duration: 4.seconds, curve: Curves.easeInOut),
+    );
+  }
+
+  Widget _buildCard({required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 20,
+            spreadRadius: -5,
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildGameButton({
+    required String text,
+    required IconData icon,
+    required List<Color> colors,
+    required VoidCallback onTap,
+    bool enabled = true,
+  }) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: enabled ? colors : [Colors.grey, Colors.grey],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: (enabled ? colors.last : Colors.grey).withOpacity(0.4),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(
+              text,
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Game Over', style: GoogleFonts.poppins()),
+        title: Text(
+          'Game Over',
+          style: GoogleFonts.orbitron(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 2,
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -157,46 +230,56 @@ class _PostGameScreenState extends State<PostGameScreen>
           onPressed: _endSession,
         ),
       ),
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.5,
-            colors: [Colors.indigo[700]!, Colors.indigo[900]!],
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.center,
+                radius: 1.2,
+                colors: [Color(0xFF0f172a), Color(0xFF020617)],
+              ),
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedBuilder(
-                  animation: _scaleAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _scaleAnimation.value,
-                      child: Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.white.withOpacity(0.15),
-                              Colors.white.withOpacity(0.05),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
+          Positioned(
+            top: -100,
+            left: -100,
+            child: _buildBlob(250, Colors.indigoAccent.withOpacity(0.3)),
+          ),
+          Positioned(
+            bottom: -120,
+            right: -80,
+            child: _buildBlob(300, Colors.purpleAccent.withOpacity(0.25)),
+          ),
+          SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                        widget.winner,
+                        style: GoogleFonts.orbitron(
+                          fontSize: 34,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 4,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 25,
+                              color: Colors.indigoAccent.withOpacity(0.7),
                             ),
                           ],
                         ),
+                        textAlign: TextAlign.center,
+                      )
+                      .animate()
+                      .fadeIn(duration: 800.ms)
+                      .scale(duration: 700.ms, curve: Curves.easeOutBack),
+                  const SizedBox(height: 32),
+                  _buildCard(
                         child: Column(
                           children: [
                             Icon(
@@ -206,108 +289,74 @@ class _PostGameScreenState extends State<PostGameScreen>
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              widget.winner,
+                              'Game Summary',
                               style: GoogleFonts.poppins(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),
-                              textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 16),
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.white.withOpacity(0.15),
-                                    Colors.white.withOpacity(0.05),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Column(
+                                  children: [
+                                    Text(
+                                      'Civilian Word',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Colors.white.withOpacity(0.8),
+                                      ),
+                                    ),
+                                    Text(
+                                      widget.civilianWord,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green,
+                                      ),
+                                    ),
                                   ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
                                 ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'Game Summary',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      Column(
-                                        children: [
-                                          Text(
-                                            'Civilian Word',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              color: Colors.white.withOpacity(
-                                                0.8,
-                                              ),
-                                            ),
-                                          ),
-                                          Text(
-                                            widget.civilianWord,
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.green,
-                                            ),
-                                          ),
-                                        ],
+                                Column(
+                                  children: [
+                                    Text(
+                                      'Spy Word',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Colors.white.withOpacity(0.8),
                                       ),
-                                      Column(
-                                        children: [
-                                          Text(
-                                            'Spy Word',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              color: Colors.white.withOpacity(
-                                                0.8,
-                                              ),
-                                            ),
-                                          ),
-                                          Text(
-                                            widget.spyWord,
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.red,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'Rounds Played: ${widget.roundsPlayed}',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.white.withOpacity(0.8),
                                     ),
-                                  ),
-                                ],
+                                    Text(
+                                      widget.spyWord,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Rounds Played: ${widget.roundsPlayed}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.8),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 32),
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Row(
+                      )
+                      .animate()
+                      .fadeIn(duration: 400.ms)
+                      .scale(duration: 400.ms, curve: Curves.easeOut),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         _scoresSaved
@@ -326,168 +375,116 @@ class _PostGameScreenState extends State<PostGameScreen>
                         ),
                       ),
                     ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 500),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _startNewRound,
-                          icon: const Icon(Icons.refresh),
-                          label: Text(
-                            'ANOTHER ROUND',
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: Colors.green[600],
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _scoresSaved ? _viewLeaderboard : null,
-                          icon: const Icon(Icons.leaderboard),
-                          label: Text(
-                            'VIEW LEADERBOARD',
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: Colors.amber[600],
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _endSession,
-                          icon: const Icon(Icons.home),
-                          label: Text(
-                            'END SESSION',
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.indigo[800],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                if (_scoresSaved)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.white.withOpacity(0.15),
-                          Colors.white.withOpacity(0.05),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Player Performance',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 200,
-                          child: ListView(
-                            children: widget.players.map((player) {
-                              final won =
-                                  (widget.winner.contains('Civilians') &&
-                                      player.role.name == 'civilian') ||
-                                  (widget.winner.contains('Undercovers') &&
-                                      (player.role.name == 'spy' ||
-                                          player.role.name == 'mrWhite'));
+                  ).animate().fadeIn(duration: 400.ms),
+                  const SizedBox(height: 32),
+                  _buildGameButton(
+                        text: 'ANOTHER ROUND',
+                        icon: Icons.refresh,
+                        colors: [Colors.greenAccent, Colors.teal],
+                        onTap: _startNewRound,
+                      )
+                      .animate()
+                      .fadeIn(duration: 400.ms)
+                      .scale(duration: 400.ms, curve: Curves.easeOut),
+                  const SizedBox(height: 16),
+                  _buildGameButton(
+                        text: 'VIEW LEADERBOARD',
+                        icon: Icons.leaderboard,
+                        colors: [Colors.amber, Colors.amberAccent],
+                        onTap: _viewLeaderboard,
+                        enabled: _scoresSaved,
+                      )
+                      .animate()
+                      .fadeIn(duration: 400.ms)
+                      .scale(duration: 400.ms, curve: Curves.easeOut),
+                  const SizedBox(height: 16),
+                  _buildGameButton(
+                        text: 'END SESSION',
+                        icon: Icons.home,
+                        colors: [Colors.blueAccent, Colors.indigo],
+                        onTap: _endSession,
+                      )
+                      .animate()
+                      .fadeIn(duration: 400.ms)
+                      .scale(duration: 400.ms, curve: Curves.easeOut),
+                  const SizedBox(height: 24),
+                  if (_scoresSaved)
+                    _buildCard(
+                          child: Column(
+                            children: [
+                              Text(
+                                'Player Performance',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                height: 200,
+                                child: ListView(
+                                  physics: const BouncingScrollPhysics(),
+                                  children: widget.players.map((player) {
+                                    final won =
+                                        (widget.winner.contains('Civilians') &&
+                                            player.role.name == 'civilian') ||
+                                        (widget.winner.contains(
+                                              'Undercovers',
+                                            ) &&
+                                            (player.role.name == 'spy' ||
+                                                player.role.name == 'mrWhite'));
 
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      won ? Icons.emoji_events : Icons.close,
-                                      color: won ? Colors.amber : Colors.red,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        player.name,
-                                        style: GoogleFonts.poppins(
-                                          color: Colors.white.withOpacity(0.9),
-                                          fontSize: 14,
-                                        ),
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 4,
                                       ),
-                                    ),
-                                    if (player.eliminated)
-                                      Icon(
-                                        Icons.remove_circle,
-                                        color: Colors.red,
-                                        size: 16,
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            won
+                                                ? Icons.emoji_events
+                                                : Icons.close,
+                                            color: won
+                                                ? Colors.amber
+                                                : Colors.red,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              player.name,
+                                              style: GoogleFonts.poppins(
+                                                color: Colors.white.withOpacity(
+                                                  0.9,
+                                                ),
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                          if (player.eliminated)
+                                            Icon(
+                                              Icons.remove_circle,
+                                              color: Colors.red,
+                                              size: 16,
+                                            ),
+                                        ],
                                       ),
-                                  ],
+                                    );
+                                  }).toList(),
                                 ),
-                              );
-                            }).toList(),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
+                        )
+                        .animate()
+                        .fadeIn(duration: 400.ms)
+                        .scale(duration: 400.ms, curve: Curves.easeOut),
+                ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
