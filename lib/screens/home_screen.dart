@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:undercover_game/screens/card_selection_screen.dart';
 import 'package:undercover_game/screens/leaderboard_screen.dart';
 import 'package:undercover_game/screens/word_management_screen.dart';
@@ -21,6 +22,57 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _numSpies = 1;
   int _numMrWhites = 1;
   Language _selectedLanguage = Language.english;
+  bool _isSoundOn = true; // Sound toggle state
+
+  // Audio players
+  final AudioPlayer _bgmPlayer = AudioPlayer();
+  final AudioPlayer _sfxPlayer = AudioPlayer();
+
+  @override
+  void initState() {
+    super.initState();
+    _playBackgroundMusic();
+  }
+
+  // Play background music
+  Future<void> _playBackgroundMusic() async {
+    if (_isSoundOn) {
+      await _bgmPlayer.setSource(AssetSource('audio/background_music.mp3'));
+      await _bgmPlayer.setReleaseMode(ReleaseMode.loop); // Loop the music
+      await _bgmPlayer.resume();
+    }
+  }
+
+  // Stop background music
+  Future<void> _stopBackgroundMusic() async {
+    await _bgmPlayer.pause();
+  }
+
+  // Play button click sound
+  Future<void> _playButtonClickSound() async {
+    if (_isSoundOn) {
+      await _sfxPlayer.play(AssetSource('audio/button_click.mp3'));
+    }
+  }
+
+  // Toggle sound
+  void _toggleSound() {
+    setState(() {
+      _isSoundOn = !_isSoundOn;
+      if (_isSoundOn) {
+        _playBackgroundMusic();
+      } else {
+        _stopBackgroundMusic();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _bgmPlayer.dispose();
+    _sfxPlayer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min, // prevents stretching
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const SizedBox(height: 20),
 
@@ -120,6 +172,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     );
                                   }
                                 });
+                                _playButtonClickSound();
                               },
                             ),
                             const SizedBox(height: 14),
@@ -130,6 +183,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               max: _totalPlayers - _numMrWhites - 1,
                               onChanged: (value) {
                                 setState(() => _numSpies = value);
+                                _playButtonClickSound();
                               },
                             ),
                             const SizedBox(height: 14),
@@ -140,6 +194,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               max: _totalPlayers - _numSpies - 1,
                               onChanged: (value) {
                                 setState(() => _numMrWhites = value);
+                                _playButtonClickSound();
                               },
                             ),
                           ],
@@ -172,6 +227,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ),
 
+                      const SizedBox(height: 20),
+
+                      /// Sound toggle button
+                      _buildGameButton(
+                        text: _isSoundOn ? "SOUND ON" : "SOUND OFF",
+                        icon: _isSoundOn ? Icons.volume_up : Icons.volume_off,
+                        colors: [Colors.cyanAccent, Colors.blue],
+                        onTap: _toggleSound,
+                      ),
+
                       const SizedBox(height: 30),
 
                       /// Buttons
@@ -192,6 +257,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             );
                             return;
                           }
+                          _playButtonClickSound();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -211,6 +277,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         icon: Icons.leaderboard,
                         colors: [Colors.orangeAccent, Colors.deepOrange],
                         onTap: () {
+                          _playButtonClickSound();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -225,6 +292,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         icon: Icons.edit_note,
                         colors: [Colors.blueAccent, Colors.indigo],
                         onTap: () {
+                          _playButtonClickSound();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -242,6 +310,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           Colors.indigo,
                         ],
                         onTap: () {
+                          _playButtonClickSound();
                           SystemNavigator.pop();
                         },
                       ),
@@ -262,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildBlob(double size, Color color) {
     return IgnorePointer(
-      ignoring: true, // purely decorative
+      ignoring: true,
       child:
           Container(
                 width: size,
@@ -273,13 +342,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   boxShadow: [
                     BoxShadow(
                       color: color.withOpacity(0.6),
-                      blurRadius: size * 0.6, // soft blur
-                      spreadRadius: size * 0.25, // expands the glow
+                      blurRadius: size * 0.6,
+                      spreadRadius: size * 0.25,
                     ),
                   ],
                 ),
               )
-              // gentle breathing animation
               .animate(onPlay: (c) => c.repeat(reverse: true))
               .scale(duration: 4.seconds, curve: Curves.easeInOut),
     );
@@ -307,7 +375,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildLangChip(String text, Language lang) {
     final bool selected = _selectedLanguage == lang;
     return GestureDetector(
-      onTap: () => setState(() => _selectedLanguage = lang),
+      onTap: () {
+        setState(() => _selectedLanguage = lang);
+        _playButtonClickSound();
+      },
       child: AnimatedContainer(
         duration: 300.ms,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),

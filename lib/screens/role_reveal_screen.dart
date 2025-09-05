@@ -23,7 +23,6 @@ class RoleRevealScreen extends StatefulWidget {
     required this.numMrWhites,
     required this.language,
   });
-
   @override
   State<RoleRevealScreen> createState() => _RoleRevealScreenState();
 }
@@ -36,7 +35,6 @@ class _RoleRevealScreenState extends State<RoleRevealScreen>
   late List<Player> players;
   List<bool> viewed = [];
   List<List<String>> wordPairs = [];
-
   @override
   void initState() {
     super.initState();
@@ -74,7 +72,6 @@ class _RoleRevealScreenState extends State<RoleRevealScreen>
         jsonEncode(wordPairs),
       );
     }
-
     if (wordPairs.isEmpty) {
       print('Warning: Word pairs list is empty'); // Debug log
       wordPairs = [
@@ -232,7 +229,6 @@ class _RoleRevealScreenState extends State<RoleRevealScreen>
         ),
       );
     }
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -410,7 +406,6 @@ class _RoleRevealScreenState extends State<RoleRevealScreen>
                                         const begin = Offset(0.0, 1.0);
                                         const end = Offset.zero;
                                         const curve = Curves.easeInOut;
-
                                         var tween = Tween(
                                           begin: begin,
                                           end: end,
@@ -418,7 +413,6 @@ class _RoleRevealScreenState extends State<RoleRevealScreen>
                                         var offsetAnimation = animation.drive(
                                           tween,
                                         );
-
                                         return SlideTransition(
                                           position: offsetAnimation,
                                           child: child,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:undercover_game/audioplayers/sound_manager.dart';
 import 'package:undercover_game/models/enums.dart';
 import 'package:undercover_game/models/players.dart';
 import 'package:undercover_game/screens/role_reveal_screen.dart';
