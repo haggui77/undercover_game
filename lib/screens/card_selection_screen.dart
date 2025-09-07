@@ -656,17 +656,17 @@ class _CardSelectionScreenState extends State<CardSelectionScreen>
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fadeIn(duration: 800.ms),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   _buildGameStats().animate().fadeIn(
                     duration: 800.ms,
                     delay: 200.ms,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   _buildProgressIndicator().animate().fadeIn(
                     duration: 800.ms,
                     delay: 400.ms,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   Expanded(
                     child: _buildGlassCard(
                       child: GridView.builder(

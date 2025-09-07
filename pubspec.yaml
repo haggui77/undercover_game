@@ -15,6 +15,9 @@ dependencies:
   google_fonts: ^6.3.1
   flutter_launcher_icons: ^0.14.0 # Add this dependency for app icon generation
   audioplayers: ^6.5.1
+  particles_flutter: ^1.0.1
+  audio_session: ^0.2.2
+  just_audio: ^0.10.5
 
 dev_dependencies:
   flutter_test:
@@ -25,7 +28,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/under.png # Reference the icon image
-    - assets/audio/background_music.mp3
     - assets/audio/button_click.mp3
     - assets/sounds/vote.mp3
     - assets/sounds/undercover_eliminated.mp3
@@ -34,6 +36,13 @@ flutter:
     - assets/sounds/mr_white_success.mp3
     - assets/sounds/interrogation.mp3
     - assets/sounds/game_over.mp3
+    - assets/audio/background_music_1.mp3
+    - assets/audio/background_music_2.mp3
+    - assets/audio/background_music_3.mp3
+    - assets/audio/background_music_4.mp3
+    - assets/audio/background_music_5.mp3
+    - assets/audio/background_music_6.mp3
+    - assets/audio/background_music_7.mp3
 
 flutter_launcher_icons:
   android: "launcher_icon"

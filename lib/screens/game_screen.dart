@@ -42,7 +42,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   String? winner;
   Player? selectedPlayer;
   bool showConfirmButton = false;
-  int roundsPlayed = 1;
+  int roundsPlayed = 0;
   late List<Player> descriptionOrder;
   late List<Player> votingOrder;
   final Random random = Random();
@@ -53,6 +53,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   // Animation controllers
   late AnimationController _pulseController;
   late AnimationController _glowController;
+  late AnimationController _celebrationController;
 
   @override
   void initState() {
@@ -70,6 +71,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
+    _celebrationController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    );
 
     // Initialize description order
     _shuffleDescriptionOrder();
@@ -89,6 +94,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   void dispose() {
     _pulseController.dispose();
     _glowController.dispose();
+    _celebrationController.dispose();
     super.dispose();
   }
 
@@ -108,17 +114,28 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         .where((p) => p.role != Role.civilian)
         .length;
 
+    print(
+      'Debug: Before proceed - roundsPlayed=$roundsPlayed, numUndercover=$numUndercover, remaining=${remaining.length}',
+    ); // Debug print
+
     if (numUndercover == 0) {
+      roundsPlayed++; // Increment for the completed round before ending
       winner = 'Civilians win!';
       setState(() {
         _currentPhase = Phase.gameOver;
       });
+      print('Debug: Civilians win - final roundsPlayed=$roundsPlayed'); // Debug
     } else if (numUndercover >= remaining.length - 1) {
+      roundsPlayed++; // Increment for the completed round before ending
       winner = 'Undercovers win!';
       setState(() {
         _currentPhase = Phase.gameOver;
       });
+      print(
+        'Debug: Undercovers win - final roundsPlayed=$roundsPlayed',
+      ); // Debug
     } else {
+      roundsPlayed++; // Increment for the NEXT round
       setState(() {
         _currentPhase = Phase.describe;
         currentIndex = 0;
@@ -126,9 +143,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         eliminatedThisRound = null;
         selectedPlayer = null;
         showConfirmButton = false;
-        roundsPlayed++;
         _shuffleDescriptionOrder();
       });
+      print(
+        'Debug: Continuing to next round - roundsPlayed=$roundsPlayed',
+      ); // Debug
     }
   }
 
@@ -184,13 +203,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   void _handleMrWhiteGuess(String guess) {
+    print('Handling Mr. White guess: $guess');
     if (guess.trim().toLowerCase() == widget.civilianWord.toLowerCase()) {
+      print('Mr. White guessed correctly! Navigating to celebration.');
       SoundManager.playMrWhiteSuccess();
       winner = 'Undercovers win!';
       setState(() {
-        _currentPhase = Phase.gameOver;
+        _currentPhase = Phase.celebration;
       });
-      Future.delayed(const Duration(seconds: 10), () {
+      _celebrationController.forward().then((_) {
+        print('Celebration animation completed. Navigating to PostGameScreen.');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -209,6 +231,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         );
       });
     } else {
+      print('Mr. White guessed incorrectly. Moving to results.');
       SoundManager.playMrWhiteFail();
       eliminatedThisRound!.eliminated = true;
       setState(() {
@@ -618,6 +641,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
     if (currentPhase == Phase.gameOver) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        print('Game over phase triggered. Navigating to PostGameScreen.');
         SoundManager.playGameOver();
         Navigator.pushReplacement(
           context,
@@ -1064,6 +1088,129 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       onTap: _proceedAfterResults,
                     ),
                   ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (currentPhase == Phase.celebration) {
+      // Fallback navigation in case _handleMrWhiteGuess navigation fails
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        print(
+          'Celebration phase build. Ensuring navigation to PostGameScreen.',
+        );
+        _celebrationController.forward().then((_) {
+          print('Fallback navigation triggered.');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PostGameScreen(
+                players: players,
+                winner: winner ?? 'Game Over',
+                civilianWord: widget.civilianWord,
+                spyWord: widget.spyWord,
+                roundsPlayed: roundsPlayed,
+                totalPlayers: players.length,
+                numSpies: players.where((p) => p.role == Role.spy).length,
+                numMrWhites: players
+                    .where((p) => p.role == Role.mrWhite)
+                    .length,
+                language: widget.language,
+              ),
+            ),
+          );
+        });
+      });
+      return Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: _buildEnhancedAppBar('Mr. White\'s Victory!'),
+        body: Stack(
+          children: [
+            _buildAnimatedBackground(),
+            SafeArea(
+              child: Center(
+                child: _buildGlassCard(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.star, size: 80, color: Colors.amber)
+                          .animate(
+                            controller: _celebrationController,
+                            autoPlay: true,
+                          )
+                          .scale(duration: 1000.ms, curve: Curves.elasticOut)
+                          .rotate(begin: 0, end: 1, duration: 1000.ms),
+                      const SizedBox(height: 24),
+                      Text(
+                            'Mr. White Guessed Correctly!',
+                            style: GoogleFonts.inter(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 1,
+                            ),
+                            textAlign: TextAlign.center,
+                          )
+                          .animate()
+                          .fadeIn(duration: 800.ms, delay: 200.ms)
+                          .scale(duration: 800.ms, curve: Curves.easeOutBack),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Undercovers Win!',
+                        style: GoogleFonts.inter(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.amber,
+                        ),
+                        textAlign: TextAlign.center,
+                      ).animate().fadeIn(duration: 800.ms, delay: 400.ms),
+                      const SizedBox(height: 24),
+                      // Animated confetti effect
+                      Stack(
+                        children: List.generate(20, (index) {
+                          return Positioned(
+                            top: Random().nextDouble() * 200 - 100,
+                            left: Random().nextDouble() * 200 - 100,
+                            child:
+                                Container(
+                                      width: 10,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                        color: [
+                                          Colors.red,
+                                          Colors.blue,
+                                          Colors.yellow,
+                                          Colors.green,
+                                          Colors.purple,
+                                        ][index % 5],
+                                        shape: BoxShape.circle,
+                                      ),
+                                    )
+                                    .animate(
+                                      controller: _celebrationController,
+                                      autoPlay: true,
+                                    )
+                                    .moveY(
+                                      begin: -50,
+                                      end: 50,
+                                      duration: 1500.ms,
+                                      delay: Duration(
+                                        milliseconds: index * 100,
+                                      ),
+                                      curve: Curves.easeOut,
+                                    )
+                                    .fadeOut(
+                                      duration: 1500.ms,
+                                      delay: Duration(
+                                        milliseconds: index * 100,
+                                      ),
+                                    ),
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
