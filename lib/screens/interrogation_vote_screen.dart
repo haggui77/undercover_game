@@ -21,10 +21,22 @@ class InterrogationVoteScreen extends StatefulWidget {
 
 class _InterrogationVoteScreenState extends State<InterrogationVoteScreen>
     with TickerProviderStateMixin {
-  int currentVoterIndex = 0;
+  int currentIndex = 0; // Tracks both description and voting phase
   Player? selectedPlayer;
   bool showTieResolution = false;
   List<Player> tiedCandidates = [];
+  List<Player> descriptionOrder = [];
+  bool isDescriptionPhase =
+      true; // Tracks whether in description or voting phase
+  final Random random = Random();
+
+  @override
+  void initState() {
+    super.initState();
+    // Randomize the description order for tied players
+    descriptionOrder = List.from(widget.tieBreaker.tiedPlayers)
+      ..shuffle(random);
+  }
 
   Widget _buildBlob(double size, Color color) {
     return IgnorePointer(
@@ -320,7 +332,134 @@ class _InterrogationVoteScreenState extends State<InterrogationVoteScreen>
       );
     }
 
-    final voter = widget.tieBreaker.voters[currentVoterIndex];
+    if (isDescriptionPhase) {
+      final player = descriptionOrder[currentIndex];
+      return Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          title: Text(
+            "${player.name}'s Description",
+            style: GoogleFonts.orbitron(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              letterSpacing: 2,
+            ),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+            color: Colors.white,
+          ),
+        ),
+        body: Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.2,
+                  colors: [Color(0xFF0f172a), Color(0xFF020617)],
+                ),
+              ),
+            ),
+            Positioned(
+              top: -100,
+              left: -100,
+              child: _buildBlob(250, Colors.indigoAccent.withOpacity(0.3)),
+            ),
+            Positioned(
+              bottom: -120,
+              right: -80,
+              child: _buildBlob(300, Colors.purpleAccent.withOpacity(0.25)),
+            ),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Describe the word',
+                      style: GoogleFonts.orbitron(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 2,
+                      ),
+                    ).animate().fadeIn(duration: 800.ms),
+                    const SizedBox(height: 16),
+                    _buildCard(
+                          child: Column(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Colors.indigo.withOpacity(0.2),
+                                radius: 40,
+                                child: Text(
+                                  player.name[0].toUpperCase(),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                player.name,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                widget.tieBreaker.getChallengeDescription(),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  color: Colors.white70,
+                                  fontWeight: FontWeight.w400,
+                                  height: 1.5,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(duration: 400.ms)
+                        .scale(duration: 400.ms, curve: Curves.easeOut),
+                    const SizedBox(height: 32),
+                    _buildGameButton(
+                      text: currentIndex < descriptionOrder.length - 1
+                          ? 'NEXT PLAYER'
+                          : 'START VOTING',
+                      icon: Icons.arrow_forward,
+                      colors: [Colors.blueAccent, Colors.indigo],
+                      onTap: () {
+                        setState(() {
+                          if (currentIndex < descriptionOrder.length - 1) {
+                            currentIndex++;
+                          } else {
+                            isDescriptionPhase = false;
+                            currentIndex = 0; // Reset for voting phase
+                          }
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final voter = widget.tieBreaker.voters[currentIndex];
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -494,10 +633,10 @@ class _InterrogationVoteScreenState extends State<InterrogationVoteScreen>
                                 0) +
                             1;
 
-                        if (currentVoterIndex <
+                        if (currentIndex <
                             widget.tieBreaker.voters.length - 1) {
                           setState(() {
-                            currentVoterIndex++;
+                            currentIndex++;
                             selectedPlayer = null;
                           });
                         } else {
@@ -518,29 +657,6 @@ class _InterrogationVoteScreenState extends State<InterrogationVoteScreen>
                               WidgetsBinding.instance.addPostFrameCallback((_) {
                                 widget.onComplete(eliminated);
                                 Navigator.pop(context);
-                              });
-                            } else if (widget.tieBreaker.retryCount < 2) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Tie in votes! Starting a new interrogation round with challenge: ${widget.tieBreaker.getChallengeDescription()}',
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    backgroundColor: Colors.amber[700],
-                                    behavior: SnackBarBehavior.floating,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                );
-                              });
-                              setState(() {
-                                widget.tieBreaker.selectRandomChallenge();
-                                currentVoterIndex = 0;
-                                selectedPlayer = null;
                               });
                             } else {
                               setState(() {
